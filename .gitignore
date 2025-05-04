@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 .DS_Store
-src/main/resources/application-local.yml
-src/main/resources/application-docker.yml
+realmon-service/src/main/resources/application-local.yml
+realmon-service/src/main/resources/application-docker.yml
+
