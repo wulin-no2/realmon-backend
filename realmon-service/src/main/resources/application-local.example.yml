@@ -1,0 +1,7 @@
+# Copy this file to application-local.yml and fill in your actual environment variables
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/realmondb?allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
