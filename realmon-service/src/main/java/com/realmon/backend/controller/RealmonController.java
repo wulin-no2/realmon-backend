@@ -26,7 +26,6 @@ public class RealmonController {
     public List<RealmonDTO> getAll() {
         List<RealmonDTO> list = realmonService.getAllRealMons();
         System.out.println("list in controller:" + list );
-//        return realmonService.getAllRealMons();
         return list;
     }
 
@@ -44,7 +43,7 @@ public class RealmonController {
     public List<RealmonDTO> getNearbyRealmon(
             @RequestParam double latitude,
             @RequestParam double longitude,
-            @RequestParam(defaultValue = "1.0") double radiusKm){
+            @RequestParam(defaultValue = "50.0") double radiusKm){
         return realmonService.findNearby(latitude, longitude, radiusKm);
 
     }
