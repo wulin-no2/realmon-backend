@@ -39,9 +39,9 @@ public class ObservationController {
     public List<ObservationDTO> getNearBy(
             @RequestParam double lat,
             @RequestParam double lon,
-            @RequestParam(defaultValue = "50.0") double radiumKm
+            @RequestParam(defaultValue = "50.0") double radiusKm
     ){
-        return service.findNearby(lat, lon, radiumKm);
+        return service.findNearby(lat, lon, radiusKm);
 
     }
 }

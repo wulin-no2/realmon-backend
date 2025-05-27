@@ -41,10 +41,10 @@ public class RealmonController {
 
     @GetMapping("/nearby")
     public List<RealmonDTO> getNearbyRealmon(
-            @RequestParam double latitude,
-            @RequestParam double longitude,
+            @RequestParam double lat,
+            @RequestParam double lon,
             @RequestParam(defaultValue = "50.0") double radiusKm){
-        return realmonService.findNearby(latitude, longitude, radiusKm);
+        return realmonService.findNearby(lat, lon, radiusKm);
 
     }
 }
