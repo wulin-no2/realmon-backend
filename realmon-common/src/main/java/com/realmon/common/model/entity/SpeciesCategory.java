@@ -15,5 +15,28 @@ public enum SpeciesCategory {
     FUNGI,
     ALGAE,
     MARINE_INVERTEBRATE,
-    OTHER
+    OTHER;
+
+    /**
+     * default icon for specific species
+     * @return icon
+     */
+    public String getDefaultIcon() {
+        return switch (this) {
+            case BIRD -> "🐦";
+            case MAMMAL -> "🦊";
+            case INSECT -> "🐞";
+            case PLANT -> "🌿";
+            case FUNGI -> "🍄";
+            case FISH -> "🐟";
+            case MARINE_INVERTEBRATE -> "🪼";
+            case REPTILE -> "🦎";
+            case AMPHIBIAN -> "🐸";
+            case ARACHNID -> "🕷";
+            case MOLLUSC -> "🐚";
+            case CRUSTACEAN -> "🦀";
+            case ALGAE -> "🪸";
+            default -> "❓";
+        };
+    }
 }

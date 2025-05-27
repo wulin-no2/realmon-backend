@@ -38,7 +38,6 @@ public class DataInitializer implements CommandLineRunner {
                     .scientificName("Erithacus rubecula")
                     .category(SpeciesCategory.BIRD)
                     .wikiUrl("https://en.wikipedia.org/wiki/European_robin")
-                    .icon("🐦")
                     .build());
 
             // Create observation

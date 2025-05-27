@@ -26,7 +26,11 @@ public class Species {
 
     private String scientificName;
     private String wikiUrl;
-    private String icon;
+//    private String icon;
+
+    public String getIcon() {
+        return category != null ? category.getDefaultIcon() : "❓";
+    }
 
     @Enumerated(EnumType.STRING)
     private SpeciesCategory category;
