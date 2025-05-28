@@ -19,10 +19,14 @@ public class ObservationDTO {
     private String imageUrl;
     private String source;
 
+    // from species
     private String speciesId;
     private String speciesName;
     private String speciesIcon;
+    private String category;
+    private String wikiUrl;
 
+    // from user
     private Long userId;
     private String username;
 }

@@ -13,6 +13,8 @@ public interface ObservationMapper {
     @Mapping(source = "species.id", target = "speciesId")
     @Mapping(source = "species.name", target = "speciesName")
     @Mapping(source = "species.icon", target = "speciesIcon")
+    @Mapping(source = "species.category", target = "category")
+    @Mapping(source = "species.wikiUrl", target = "wikiUrl")
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "user.username", target = "username")
     ObservationDTO toDTO(Observation entity);

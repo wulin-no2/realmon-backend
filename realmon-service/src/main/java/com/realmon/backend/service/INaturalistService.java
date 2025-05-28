@@ -141,6 +141,7 @@ public class INaturalistService {
                 JsonNode results = root.path("results");
                 List<ObservationDTO> observations = new ArrayList<>();
 
+                // get info from api
                 for (JsonNode result : results) {
                     JsonNode taxon = result.path("taxon");
                     String speciesId = taxon.path("id").asText();
@@ -148,18 +149,34 @@ public class INaturalistService {
                     String scientificName = taxon.path("name").asText(null);
                     String iconUrl = taxon.path("default_photo").path("medium_url").asText(null);
                     String iconicName = taxon.path("iconic_taxon_name").asText(null);
+                    String wikiUrl = taxon.path("wikipedia_url").asText(null);
+
 
                     SpeciesCategory category = mapToCategory(iconicName);
                     String speciesIcon = category.getDefaultIcon();
 
+                    // get geo
                     JsonNode geo = result.path("geojson");
                     double latitude = geo.path("coordinates").get(1).asDouble();
                     double longitude = geo.path("coordinates").get(0).asDouble();
 
-                    String imageUrl = result.path("photos").isArray() && result.path("photos").size() > 0
-                            ? result.path("photos").get(0).path("url").asText(null)
-                            : iconUrl;
+                    // get image
+                    String imageUrl = null;
 
+                    if (result.path("photos").isArray() && result.path("photos").size() > 0) {
+                        JsonNode photo = result.path("photos").get(0);
+                        String squareUrl = photo.path("url").asText(null);
+
+                        if (squareUrl != null) {
+                            imageUrl = squareUrl.replace("/square.jpg", "/large.jpg");
+                        }
+                    }
+                    if (imageUrl == null || imageUrl.isEmpty()) {
+                        imageUrl = iconUrl;
+                    }
+
+
+                    // get user info
                     String username = result.path("user").path("login").asText("iNat-user");
 
                     String observedAtRaw = result.path("time_observed_at").asText(null);
@@ -167,6 +184,7 @@ public class INaturalistService {
                             ? OffsetDateTime.parse(observedAtRaw).toLocalDateTime()
                             : LocalDateTime.now();
 
+                    // construct observation
                     observations.add(ObservationDTO.builder()
                             .latitude(latitude)
                             .longitude(longitude)
@@ -176,6 +194,8 @@ public class INaturalistService {
                             .speciesId(speciesId)
                             .speciesName(speciesName != null ? speciesName : scientificName)
                             .speciesIcon(speciesIcon)
+                            .category(category.name())
+                            .wikiUrl(wikiUrl)
                             .userId(null)
                             .username(username)
                             .build());

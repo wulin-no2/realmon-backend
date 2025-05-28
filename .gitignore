@@ -35,3 +35,4 @@ build/
 realmon-service/src/main/resources/application-local.yml
 realmon-service/src/main/resources/application-docker.yml
 
+**/target/
