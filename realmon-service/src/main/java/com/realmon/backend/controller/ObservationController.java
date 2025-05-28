@@ -1,11 +1,13 @@
 package com.realmon.backend.controller;
 
+import com.realmon.backend.service.INaturalistService;
 import com.realmon.backend.service.ObservationService;
 import com.realmon.common.model.dto.ObservationDTO;
 import com.realmon.common.model.entity.Observation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -14,6 +16,7 @@ import java.util.List;
 public class ObservationController {
 
     private final ObservationService service;
+    private final INaturalistService iNaturalistService;
 
 
     /**
@@ -35,13 +38,25 @@ public class ObservationController {
         return service.save(observation);
     }
 
+    /**
+     * get nearby observations from iNaturalist and local db
+     * @param lat
+     * @param lon
+     * @param radiusKm
+     * @return
+     */
     @GetMapping("/nearby")
-    public List<ObservationDTO> getNearBy(
-            @RequestParam double lat,
-            @RequestParam double lon,
-            @RequestParam(defaultValue = "50.0") double radiusKm
-    ){
-        return service.findNearby(lat, lon, radiusKm);
+    public List<ObservationDTO> getNearby(@RequestParam double lat,
+                                          @RequestParam double lon,
+                                          @RequestParam(defaultValue = "50.0") double radiusKm
+    ) {
+        List<ObservationDTO> userObservations = service.findNearby(lat, lon, radiusKm);
+        List<ObservationDTO> inatObservations = iNaturalistService.getNearbyFromINat(lat, lon, (int)radiusKm, 50);
 
+        List<ObservationDTO> combined = new ArrayList<>();
+        combined.addAll(userObservations);
+        combined.addAll(inatObservations);
+        return combined;
     }
+
 }
