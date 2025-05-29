@@ -124,6 +124,8 @@ public class INaturalistService {
     private static final String BASE_URL = "https://api.inaturalist.org/v1/observations";
 
     public List<ObservationDTO> getNearbyFromINat(double lat, double lon, int radiusKm, int limit) {
+        //        TODO: ADD CACHE WITH ConcurrentHashMap
+        //        TODO: import data to localDB every week instead of getting data from API
         String url = UriComponentsBuilder
                 .fromHttpUrl(BASE_URL)
                 .queryParam("lat", lat)
@@ -193,6 +195,7 @@ public class INaturalistService {
                             .source("inaturalist")
                             .speciesId(speciesId)
                             .speciesName(speciesName != null ? speciesName : scientificName)
+                            .scientificName(scientificName)
                             .speciesIcon(speciesIcon)
                             .category(category.name())
                             .wikiUrl(wikiUrl)

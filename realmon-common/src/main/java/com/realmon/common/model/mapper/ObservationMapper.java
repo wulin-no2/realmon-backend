@@ -12,6 +12,7 @@ public interface ObservationMapper {
 
     @Mapping(source = "species.id", target = "speciesId")
     @Mapping(source = "species.name", target = "speciesName")
+    @Mapping(source = "species.scientificName", target = "scientificName")
     @Mapping(source = "species.icon", target = "speciesIcon")
     @Mapping(source = "species.category", target = "category")
     @Mapping(source = "species.wikiUrl", target = "wikiUrl")

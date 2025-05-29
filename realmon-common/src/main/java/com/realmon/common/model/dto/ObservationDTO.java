@@ -22,6 +22,7 @@ public class ObservationDTO {
     // from species
     private String speciesId;
     private String speciesName;
+    private String scientificName;
     private String speciesIcon;
     private String category;
     private String wikiUrl;
