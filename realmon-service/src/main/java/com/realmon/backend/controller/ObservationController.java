@@ -48,10 +48,10 @@ public class ObservationController {
     @GetMapping("/nearby")
     public List<ObservationDTO> getNearby(@RequestParam double lat,
                                           @RequestParam double lon,
-                                          @RequestParam(defaultValue = "50.0") double radiusKm
+                                          @RequestParam(defaultValue = "5.0") double radiusKm
     ) {
         List<ObservationDTO> userObservations = service.findNearby(lat, lon, radiusKm);
-        List<ObservationDTO> inatObservations = iNaturalistService.getNearbyFromINat(lat, lon, (int)radiusKm, 100);
+        List<ObservationDTO> inatObservations = iNaturalistService.getNearbyFromINat(lat, lon, (int)radiusKm, 10);
 
         List<ObservationDTO> combined = new ArrayList<>();
         combined.addAll(userObservations);
