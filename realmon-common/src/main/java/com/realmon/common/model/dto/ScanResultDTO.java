@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScanResultDTO {
+    private String id;
     private String name;            // common name
     private String scientificName;  // e.g., Rubus ulmifolius
     private String category;        // e.g., Plantae

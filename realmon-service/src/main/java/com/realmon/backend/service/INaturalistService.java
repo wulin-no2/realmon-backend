@@ -2,10 +2,13 @@ package com.realmon.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.common.model.dto.ObservationDTO;
+import com.realmon.common.model.entity.Species;
 import com.realmon.common.model.entity.SpeciesCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,15 +18,14 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class INaturalistService {
-    ////        TODO: ADD CACHE WITH ConcurrentHashMap
-    ////        TODO: import data to localDB every week instead of getting data from API
 
-
+    private final SpeciesRepository speciesRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -109,8 +111,28 @@ public class INaturalistService {
                             .userId(null)
                             .username(username)
                             .build());
-                }
+                    // save species
+                    try {
+                        speciesRepository.findById(speciesId).orElseGet(() -> {
+                            log.info("Saving new species from iNat: {}", speciesId);
+                            return speciesRepository.save(
+                                    Species.builder()
+                                            .id(speciesId)
+                                            .name(speciesName != null ? speciesName : scientificName)
+                                            .scientificName(scientificName)
+                                            .wikiUrl(wikiUrl)
+                                            .category(category)
+                                            .build()
+                            );
+                        });
+                    } catch (DataIntegrityViolationException e) {
+                        log.warn("Species already exists or violated constraint: {}", speciesId);
+                    }
 
+
+
+
+                }
                 return observations;
             }
         } catch (Exception e) {

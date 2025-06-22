@@ -33,4 +33,19 @@ public class SpeciesService {
         log.info("Save species info, {}", species);
         return repository.save(species);
     }
+
+    @Operation(summary = "Get species name by id")
+    public String getNameById(String id) {
+        return repository.findById(id)
+                .map(Species::getName)
+                .orElseThrow(() -> new IllegalArgumentException("Species not found for id: " + id));
+    }
+
+    @Operation(summary = "Get species id by name")
+    public String getIdByName(String name) {
+        return repository.findByName(name)
+                .map(Species::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Species not found for name: " + name));
+
+    }
 }

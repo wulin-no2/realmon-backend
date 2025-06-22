@@ -85,6 +85,7 @@ public class INaturalistScanService {
                 JsonNode photo = taxon.path("default_photo");
 
                 results.add(ScanResultDTO.builder()
+                        .id(taxon.path("id").asText(null))
                         .name(taxon.path("preferred_common_name").asText(null))
                         .scientificName(taxon.path("name").asText(null))
                         .wikiUrl(taxon.path("wikipedia_url").asText(null))
