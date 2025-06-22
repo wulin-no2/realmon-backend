@@ -2,7 +2,9 @@ package com.realmon.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.common.model.dto.ObservationDTO;
+import com.realmon.common.model.entity.Species;
 import com.realmon.common.model.entity.SpeciesCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class INaturalistService {
     ////        TODO: import data to localDB every week instead of getting data from API
 
 
+    private final SpeciesRepository speciesRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -109,8 +112,21 @@ public class INaturalistService {
                             .userId(null)
                             .username(username)
                             .build());
-                }
+                    // construct species entity
+                    Species species = Species.builder()
+                            .id(speciesId)
+                            .name(speciesName != null ? speciesName : scientificName)
+                            .scientificName(scientificName)
+                            .wikiUrl(wikiUrl)
+                            .category(category)
+                            .build();
 
+                    // save species entity if not exists
+                    speciesRepository.findById(speciesId).orElseGet(() -> {
+                        log.info("Saving new species from iNat: {}", speciesId);
+                        return speciesRepository.save(species);
+                    });
+                }
                 return observations;
             }
         } catch (Exception e) {
