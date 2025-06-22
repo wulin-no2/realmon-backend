@@ -105,6 +105,7 @@ public class SpeciesDetailsAIService {
                     .build();
 
             speciesDetailsRepository.save(entity);
+            log.info("species details are: {}",entity);
             return mapper.toDTO(entity);
 
         } catch (Exception e) {
