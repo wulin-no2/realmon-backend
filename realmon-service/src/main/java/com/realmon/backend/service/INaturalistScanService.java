@@ -3,6 +3,7 @@ package com.realmon.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.realmon.backend.config.InaturalistConfig;
+import com.realmon.backend.utils.ImageCompressor;
 import com.realmon.backend.utils.MultipartInputStreamFileResource;
 import com.realmon.common.model.dto.ScanResultDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,20 +51,24 @@ public class INaturalistScanService {
     public List<ScanResultDTO> identifySpecies(MultipartFile imageFile) throws IOException {
         log.info("Calling iNaturalist with image: {}", imageFile.getOriginalFilename());
 
+        // compress file
+        File compressedFile = ImageCompressor.compressIfNeeded(imageFile);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         headers.set("Authorization", "Bearer " + inaturalistConfig.getToken()); // iNaturalist token
 
-
         // Prepare the multipart request
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("image", new MultipartInputStreamFileResource(
-                imageFile.getInputStream(),
-                imageFile.getOriginalFilename())
+//                imageFile.getInputStream(),
+//                imageFile.getOriginalFilename())
+                new FileInputStream(compressedFile),
+                compressedFile.getName())
         );
-        System.out.println("filename = " + imageFile.getOriginalFilename());
-        System.out.println("size = " + imageFile.getSize());
-
+//        System.out.println("filename = " + imageFile.getOriginalFilename());
+//        System.out.println("size = " + imageFile.getSize());
+        log.info("filename = {}" ,imageFile.getOriginalFilename());
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
@@ -71,6 +78,10 @@ public class INaturalistScanService {
                 requestEntity,
                 String.class
         );
+
+        // delete compressed file
+        compressedFile.delete();
+
         log.info("Response from iNaturalist: {}", response.getBody());
 
 
