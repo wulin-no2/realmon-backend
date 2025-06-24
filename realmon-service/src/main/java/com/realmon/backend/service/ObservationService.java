@@ -1,8 +1,11 @@
 package com.realmon.backend.service;
 
 import com.realmon.backend.repository.ObservationRepository;
+import com.realmon.common.model.dto.ObservationCreateDTO;
 import com.realmon.common.model.dto.ObservationDTO;
 import com.realmon.common.model.entity.Observation;
+import com.realmon.common.model.entity.Species;
+import com.realmon.common.model.entity.User;
 import com.realmon.common.model.mapper.ObservationMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -42,6 +46,25 @@ public class ObservationService {
         log.info("Save observation info, {}", observation);
         return repository.save(observation);
     }
+
+    public ObservationDTO createObservation(ObservationCreateDTO dto, User user) {
+        Species species = new Species(); //
+        species.setId(dto.getSpeciesId()); // only set ID to ignore extra query
+
+        Observation obs = Observation.builder()
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
+                .imageUrl(dto.getImageUrl())
+                .source(dto.getSource())
+                .observedAt(dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now())
+                .user(user)
+                .species(species)
+                .build();
+
+        log.info("Create observation: {}", obs);
+        return mapper.toDTO(repository.save(obs));
+    }
+
 
     /**
      * find nearby observations

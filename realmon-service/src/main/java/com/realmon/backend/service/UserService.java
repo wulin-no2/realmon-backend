@@ -33,4 +33,16 @@ public class UserService {
         log.info("save user info, {}", user);
         return repository.save(user);
     }
+
+    @Operation(summary = "find user info by id")
+    public User findById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Operation(summary = "find user info by username and password")
+    public User findByUsernameAndPassword(String username, String password) {
+        return repository.findByUsernameAndPassword(username, password)
+                .orElse(null); //
+    }
 }

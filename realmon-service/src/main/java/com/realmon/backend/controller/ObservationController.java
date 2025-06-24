@@ -2,10 +2,15 @@ package com.realmon.backend.controller;
 
 import com.realmon.backend.service.INaturalistService;
 import com.realmon.backend.service.ObservationService;
+import com.realmon.common.model.dto.ObservationCreateDTO;
 import com.realmon.common.model.dto.ObservationDTO;
 import com.realmon.common.model.entity.Observation;
+import com.realmon.common.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +42,17 @@ public class ObservationController {
     public Observation upload(@RequestBody Observation observation) {
         return service.save(observation);
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<ObservationDTO> createObservation(
+            @RequestBody ObservationCreateDTO dto,
+            @AuthenticationPrincipal User user
+    ) {
+        ObservationDTO created = service.createObservation(dto, user);
+        return ResponseEntity.ok(created);
+    }
+
+
 
     /**
      * get nearby observations from iNaturalist and local db
