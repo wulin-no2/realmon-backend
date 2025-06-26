@@ -17,4 +17,5 @@ public class CollectRequestDTO {
     private Double longitude;
     private Instant timestamp;
     private String source;
+    private String category;
 }

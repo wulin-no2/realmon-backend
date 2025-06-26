@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +62,7 @@ public class UserService {
                 .orElse(null); //
     }
 
+    @Operation(summary = "user upload image and collects species")
     public UserSpeciesDTO collectSpecies(Long userId, CollectRequestDTO request) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -68,12 +70,7 @@ public class UserService {
         Species species = speciesRepository.findById(request.getSpeciesId())
                 .orElseThrow(() -> new RuntimeException("Species not found"));
 
-        // don't collect repeatedly
-        if (userSpeciesRepository.existsByUserIdAndSpeciesId(userId, request.getSpeciesId())) {
-            throw new RuntimeException("Species already collected");
-        }
-
-        // create Observation
+        // always create Observation
         Observation obs = null;
         if (request.getLatitude() != null && request.getLongitude() != null) {
             obs = Observation.builder()
@@ -89,16 +86,65 @@ public class UserService {
             obs = observationRepository.save(obs);
         }
 
-        // create UserSpecies
-        UserSpecies entry = UserSpecies.builder()
-                .user(user)
-                .species(species)
-                .observation(obs)
-                .collectedAt(LocalDateTime.now())
-                .build();
+        // check if user_species exists
+        Optional<UserSpecies> existing = userSpeciesRepository
+                .findByUserIdAndSpeciesId(userId, request.getSpeciesId());
 
-        UserSpecies saved = userSpeciesRepository.save(entry);
-        return userSpeciesMapper.toDTO(saved);
+        UserSpecies userSpecies;
+        if (existing.isPresent()) {
+            userSpecies = existing.get(); // don't insert repeatedly
+        } else {
+            userSpecies = UserSpecies.builder()
+                    .user(user)
+                    .species(species)
+                    .observation(obs)
+                    .collectedAt(LocalDateTime.now())
+                    .build();
+            userSpecies = userSpeciesRepository.save(userSpecies);
+        }
+
+        return userSpeciesMapper.toDTO(userSpecies);
     }
+
+
+//    public UserSpeciesDTO collectSpecies(Long userId, CollectRequestDTO request) {
+//        User user = repository.findById(userId)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        Species species = speciesRepository.findById(request.getSpeciesId())
+//                .orElseThrow(() -> new RuntimeException("Species not found"));
+//
+//        // don't collect repeatedly
+//        if (userSpeciesRepository.existsByUserIdAndSpeciesId(userId, request.getSpeciesId())) {
+//            throw new RuntimeException("Species already collected");
+//        }
+//
+//        // create Observation
+//        Observation obs = null;
+//        if (request.getLatitude() != null && request.getLongitude() != null) {
+//            obs = Observation.builder()
+//                    .user(user)
+//                    .species(species)
+//                    .latitude(request.getLatitude())
+//                    .longitude(request.getLongitude())
+//                    .observedAt(request.getTimestamp() != null ?
+//                            LocalDateTime.ofInstant(request.getTimestamp(), ZoneOffset.UTC) : LocalDateTime.now())
+//                    .imageUrl(request.getImageUrl())
+//                    .source(request.getSource())
+//                    .build();
+//            obs = observationRepository.save(obs);
+//        }
+//
+//        // create UserSpecies
+//        UserSpecies entry = UserSpecies.builder()
+//                .user(user)
+//                .species(species)
+//                .observation(obs)
+//                .collectedAt(LocalDateTime.now())
+//                .build();
+//
+//        UserSpecies saved = userSpeciesRepository.save(entry);
+//        return userSpeciesMapper.toDTO(saved);
+//    }
 
 }

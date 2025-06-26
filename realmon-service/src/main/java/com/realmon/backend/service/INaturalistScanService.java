@@ -3,9 +3,12 @@ package com.realmon.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.realmon.backend.config.InaturalistConfig;
+import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.backend.utils.ImageCompressor;
 import com.realmon.backend.utils.MultipartInputStreamFileResource;
 import com.realmon.common.model.dto.ScanResultDTO;
+import com.realmon.common.model.entity.Species;
+import com.realmon.common.model.entity.SpeciesCategory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +40,8 @@ public class INaturalistScanService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final InaturalistConfig inaturalistConfig;
+    private final SpeciesRepository speciesRepository;
+
 
 
     private static final String INAT_CV_URL = "https://api.inaturalist.org/v1/computervision/score_image";
@@ -94,6 +99,9 @@ public class INaturalistScanService {
             for (JsonNode result : resultList) {
                 JsonNode taxon = result.path("taxon");
                 JsonNode photo = taxon.path("default_photo");
+                // save species
+                getOrCreateSpecies(result.path("taxon"));
+
 
                 results.add(ScanResultDTO.builder()
                         .id(taxon.path("id").asText(null))
@@ -109,4 +117,35 @@ public class INaturalistScanService {
 
         return results;
     }
+
+    private void getOrCreateSpecies(JsonNode taxon) {
+        String id = taxon.path("id").asText(null);
+        String name = taxon.path("preferred_common_name").asText(null);
+        String scientificName = taxon.path("name").asText(null);
+        String wikiUrl = taxon.path("wikipedia_url").asText(null);
+        String categoryStr = taxon.path("iconic_taxon_name").asText(null);
+
+        if (id == null) return;
+
+        final SpeciesCategory finalCategory;
+        SpeciesCategory finalCategory1;
+        try {
+            finalCategory1 = SpeciesCategory.valueOf(categoryStr.toUpperCase());
+        } catch (Exception e) {
+            finalCategory1 = SpeciesCategory.OTHER;
+        }
+
+        finalCategory = finalCategory1;
+        speciesRepository.findById(id).orElseGet(() ->
+                speciesRepository.save(Species.builder()
+                        .id(id)
+                        .name(name != null ? name : scientificName)
+                        .scientificName(scientificName)
+                        .wikiUrl(wikiUrl)
+                        .category(finalCategory)
+                        .build())
+        );
+
+    }
+
 }

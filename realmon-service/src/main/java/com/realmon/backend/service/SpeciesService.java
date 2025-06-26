@@ -3,6 +3,7 @@ package com.realmon.backend.service;
 import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.common.model.dto.SpeciesDTO;
 import com.realmon.common.model.entity.Species;
+import com.realmon.common.model.entity.SpeciesCategory;
 import com.realmon.common.model.mapper.SpeciesMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,4 +49,28 @@ public class SpeciesService {
                 .orElseThrow(() -> new IllegalArgumentException("Species not found for name: " + name));
 
     }
+
+    /**
+     * helper function for recording species when scanning or exploring
+     * @param speciesId
+     * @param name
+     * @param scientificName
+     * @param wikiUrl
+     * @param category
+     * @return
+     */
+    @Operation(summary = "Get or create species")
+    public Species getOrCreateSpecies(String speciesId, String name, String scientificName, String wikiUrl, SpeciesCategory category) {
+        return repository.findById(speciesId).orElseGet(() -> {
+            Species species = Species.builder()
+                    .id(speciesId)
+                    .name(name != null ? name : scientificName)
+                    .scientificName(scientificName)
+                    .wikiUrl(wikiUrl)
+                    .category(category != null ? category : SpeciesCategory.OTHER)
+                    .build();
+            return repository.save(species);
+        });
+    }
+
 }
