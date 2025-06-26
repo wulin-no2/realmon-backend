@@ -6,34 +6,29 @@ import lombok.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-public class Observation {
+@Table(name = "user_species")
+public class UserSpecies {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ToString.Include
-    @EqualsAndHashCode.Include
     private Long id;
 
-    @ToString.Include
-    private LocalDateTime observedAt;
-
-    private Double latitude;
-    private Double longitude;
-
-    private String imageUrl;
-    private String source;  // "user-upload", "inaturalist", etc.
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Species species;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    private Observation observation;
+
+    private LocalDateTime collectedAt;
 }

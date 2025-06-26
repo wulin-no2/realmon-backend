@@ -25,6 +25,8 @@ public class SecurityConfig {
                                 "/api/users/register",        // for registration
                                 "/api/species/**",            // for species
                                 "/api/observations/nearby",   // for map
+                                "/api/scan",
+                                "/api/user/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"

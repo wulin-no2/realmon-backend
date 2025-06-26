@@ -1,15 +1,26 @@
 package com.realmon.backend.service;
 
+import com.realmon.backend.repository.ObservationRepository;
+import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.backend.repository.UserRepository;
+import com.realmon.backend.repository.UserSpeciesRepository;
+import com.realmon.common.model.dto.CollectRequestDTO;
 import com.realmon.common.model.dto.UserDTO;
+import com.realmon.common.model.dto.UserSpeciesDTO;
+import com.realmon.common.model.entity.Observation;
+import com.realmon.common.model.entity.Species;
 import com.realmon.common.model.entity.User;
+import com.realmon.common.model.entity.UserSpecies;
 import com.realmon.common.model.mapper.UserMapper;
+import com.realmon.common.model.mapper.UserSpeciesMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -19,7 +30,11 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository repository;
+    private final SpeciesRepository speciesRepository;
+    private final UserSpeciesRepository userSpeciesRepository;
+    private final ObservationRepository observationRepository;
     private final UserMapper mapper;
+    private final UserSpeciesMapper userSpeciesMapper;
 
     @Operation(summary = "Get all users")
     public List<UserDTO> getAllUsers() {
@@ -45,4 +60,45 @@ public class UserService {
         return repository.findByUsernameAndPassword(username, password)
                 .orElse(null); //
     }
+
+    public UserSpeciesDTO collectSpecies(Long userId, CollectRequestDTO request) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Species species = speciesRepository.findById(request.getSpeciesId())
+                .orElseThrow(() -> new RuntimeException("Species not found"));
+
+        // don't collect repeatedly
+        if (userSpeciesRepository.existsByUserIdAndSpeciesId(userId, request.getSpeciesId())) {
+            throw new RuntimeException("Species already collected");
+        }
+
+        // create Observation
+        Observation obs = null;
+        if (request.getLatitude() != null && request.getLongitude() != null) {
+            obs = Observation.builder()
+                    .user(user)
+                    .species(species)
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .observedAt(request.getTimestamp() != null ?
+                            LocalDateTime.ofInstant(request.getTimestamp(), ZoneOffset.UTC) : LocalDateTime.now())
+                    .imageUrl(request.getImageUrl())
+                    .source(request.getSource())
+                    .build();
+            obs = observationRepository.save(obs);
+        }
+
+        // create UserSpecies
+        UserSpecies entry = UserSpecies.builder()
+                .user(user)
+                .species(species)
+                .observation(obs)
+                .collectedAt(LocalDateTime.now())
+                .build();
+
+        UserSpecies saved = userSpeciesRepository.save(entry);
+        return userSpeciesMapper.toDTO(saved);
+    }
+
 }
