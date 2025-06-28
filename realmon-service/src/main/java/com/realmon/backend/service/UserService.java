@@ -4,14 +4,13 @@ import com.realmon.backend.repository.ObservationRepository;
 import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.backend.repository.UserRepository;
 import com.realmon.backend.repository.UserSpeciesRepository;
-import com.realmon.common.model.dto.CollectRequestDTO;
-import com.realmon.common.model.dto.UserDTO;
-import com.realmon.common.model.dto.UserSpeciesDTO;
+import com.realmon.common.model.dto.*;
 import com.realmon.common.model.entity.Observation;
 import com.realmon.common.model.entity.Species;
 import com.realmon.common.model.entity.User;
 import com.realmon.common.model.entity.UserSpecies;
 import com.realmon.common.model.mapper.UserMapper;
+//import com.realmon.common.model.mapper.UserSpeciesMapper;
 import com.realmon.common.model.mapper.UserSpeciesMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +21,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -107,44 +108,26 @@ public class UserService {
     }
 
 
-//    public UserSpeciesDTO collectSpecies(Long userId, CollectRequestDTO request) {
-//        User user = repository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Species species = speciesRepository.findById(request.getSpeciesId())
-//                .orElseThrow(() -> new RuntimeException("Species not found"));
-//
-//        // don't collect repeatedly
-//        if (userSpeciesRepository.existsByUserIdAndSpeciesId(userId, request.getSpeciesId())) {
-//            throw new RuntimeException("Species already collected");
-//        }
-//
-//        // create Observation
-//        Observation obs = null;
-//        if (request.getLatitude() != null && request.getLongitude() != null) {
-//            obs = Observation.builder()
-//                    .user(user)
-//                    .species(species)
-//                    .latitude(request.getLatitude())
-//                    .longitude(request.getLongitude())
-//                    .observedAt(request.getTimestamp() != null ?
-//                            LocalDateTime.ofInstant(request.getTimestamp(), ZoneOffset.UTC) : LocalDateTime.now())
-//                    .imageUrl(request.getImageUrl())
-//                    .source(request.getSource())
-//                    .build();
-//            obs = observationRepository.save(obs);
-//        }
-//
-//        // create UserSpecies
-//        UserSpecies entry = UserSpecies.builder()
-//                .user(user)
-//                .species(species)
-//                .observation(obs)
-//                .collectedAt(LocalDateTime.now())
-//                .build();
-//
-//        UserSpecies saved = userSpeciesRepository.save(entry);
-//        return userSpeciesMapper.toDTO(saved);
-//    }
+    @Operation(summary = "get user collection deck")
+    public UserRealmonDeckResponse getUserRealmonDeck(Long userId) {
+        List<UserSpecies> entities = userSpeciesRepository.findByUserId(userId);
+        List<UserSpeciesViewDTO> items = userSpeciesMapper.toViewDTOs(entities);
+
+        int totalCollected = items.size();
+
+        List<String> badges = entities.stream()
+                .map(us -> us.getSpecies().getCategory())
+                .filter(Objects::nonNull)
+                .map(Enum::name)
+                .distinct()
+                .collect(Collectors.toList());
+
+        return UserRealmonDeckResponse.builder()
+                .totalCollected(totalCollected)
+                .badges(badges)
+                .items(items)
+                .build();
+    }
+
 
 }

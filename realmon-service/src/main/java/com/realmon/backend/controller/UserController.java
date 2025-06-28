@@ -29,6 +29,13 @@ public class UserController {
         return service.getAllUsers();
     }
 
+
+    @GetMapping("/collected")
+    public ResponseEntity<UserRealmonDeckResponse> getRealmonDeck(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(service.getUserRealmonDeck(user.getId()));
+    }
+
+
     @PostMapping
     public User create(@RequestBody User user) {
         return service.save(user);
