@@ -40,9 +40,8 @@ public class INaturalistScanService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final InaturalistConfig inaturalistConfig;
-    private final SpeciesRepository speciesRepository;
-
-
+//    private final SpeciesRepository speciesRepository;
+    private final SpeciesSyncService speciesSyncService;
 
     private static final String INAT_CV_URL = "https://api.inaturalist.org/v1/computervision/score_image";
 
@@ -66,13 +65,9 @@ public class INaturalistScanService {
         // Prepare the multipart request
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("image", new MultipartInputStreamFileResource(
-//                imageFile.getInputStream(),
-//                imageFile.getOriginalFilename())
                 new FileInputStream(compressedFile),
                 compressedFile.getName())
         );
-//        System.out.println("filename = " + imageFile.getOriginalFilename());
-//        System.out.println("size = " + imageFile.getSize());
         log.info("filename = {}" ,imageFile.getOriginalFilename());
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
@@ -89,7 +84,6 @@ public class INaturalistScanService {
 
         log.info("Response from iNaturalist: {}", response.getBody());
 
-
         List<ScanResultDTO> results = new ArrayList<>();
 
         if (response.getStatusCode().is2xxSuccessful()) {
@@ -100,7 +94,12 @@ public class INaturalistScanService {
                 JsonNode taxon = result.path("taxon");
                 JsonNode photo = taxon.path("default_photo");
                 // save species
-                getOrCreateSpecies(result.path("taxon"));
+                Species savedSpecies = speciesSyncService.getOrCreateSpeciesFromTaxon(taxon);
+                log.info("Species saved or found: {}", savedSpecies);
+//                getOrCreateSpecies(result.path("taxon"));
+                String iconicName = taxon.path("iconic_taxon_name").asText(null);
+                SpeciesCategory category = speciesSyncService.mapToCategory(iconicName);
+                String speciesIcon = category.getDefaultIcon();
 
 
                 results.add(ScanResultDTO.builder()
@@ -108,7 +107,8 @@ public class INaturalistScanService {
                         .name(taxon.path("preferred_common_name").asText(null))
                         .scientificName(taxon.path("name").asText(null))
                         .wikiUrl(taxon.path("wikipedia_url").asText(null))
-                        .category(taxon.path("iconic_taxon_name").asText(null))
+                        .category(category.name())
+                        .icon(speciesIcon)
                         .score(result.path("vision_score").asDouble(0))  // or combined_score
                         .imageUrl(photo.path("large_url").asText(photo.path("medium_url").asText(null)))
                         .build());
@@ -116,36 +116,6 @@ public class INaturalistScanService {
         }
 
         return results;
-    }
-
-    private void getOrCreateSpecies(JsonNode taxon) {
-        String id = taxon.path("id").asText(null);
-        String name = taxon.path("preferred_common_name").asText(null);
-        String scientificName = taxon.path("name").asText(null);
-        String wikiUrl = taxon.path("wikipedia_url").asText(null);
-        String categoryStr = taxon.path("iconic_taxon_name").asText(null);
-
-        if (id == null) return;
-
-        final SpeciesCategory finalCategory;
-        SpeciesCategory finalCategory1;
-        try {
-            finalCategory1 = SpeciesCategory.valueOf(categoryStr.toUpperCase());
-        } catch (Exception e) {
-            finalCategory1 = SpeciesCategory.OTHER;
-        }
-
-        finalCategory = finalCategory1;
-        speciesRepository.findById(id).orElseGet(() ->
-                speciesRepository.save(Species.builder()
-                        .id(id)
-                        .name(name != null ? name : scientificName)
-                        .scientificName(scientificName)
-                        .wikiUrl(wikiUrl)
-                        .category(finalCategory)
-                        .build())
-        );
-
     }
 
 }

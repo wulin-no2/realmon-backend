@@ -28,6 +28,7 @@ public class INaturalistService {
     private final SpeciesRepository speciesRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final SpeciesSyncService speciesSyncService;
 
     private static final String BASE_URL = "https://api.inaturalist.org/v1/observations";
 
@@ -63,7 +64,7 @@ public class INaturalistService {
                     String wikiUrl = taxon.path("wikipedia_url").asText(null);
 
 
-                    SpeciesCategory category = mapToCategory(iconicName);
+                    SpeciesCategory category = speciesSyncService.mapToCategory(iconicName);
                     String speciesIcon = category.getDefaultIcon();
 
                     // get geo
@@ -113,25 +114,10 @@ public class INaturalistService {
                             .build());
                     // save species
                     try {
-                        speciesRepository.findById(speciesId).orElseGet(() -> {
-                            log.info("Saving new species from iNat: {}", speciesId);
-                            return speciesRepository.save(
-                                    Species.builder()
-                                            .id(speciesId)
-                                            .name(speciesName != null ? speciesName : scientificName)
-                                            .scientificName(scientificName)
-                                            .wikiUrl(wikiUrl)
-                                            .category(category)
-                                            .build()
-                            );
-                        });
+                        speciesSyncService.getOrCreateSpeciesFromTaxon(taxon);
                     } catch (DataIntegrityViolationException e) {
                         log.warn("Species already exists or violated constraint: {}", speciesId);
                     }
-
-
-
-
                 }
                 return observations;
             }
@@ -142,23 +128,5 @@ public class INaturalistService {
         return List.of();
     }
 
-    private SpeciesCategory mapToCategory(String iconicName) {
-        if (iconicName == null) return SpeciesCategory.OTHER;
 
-        return switch (iconicName.toLowerCase()) {
-            case "mammalia", "mammal" -> SpeciesCategory.MAMMAL;
-            case "aves", "bird" -> SpeciesCategory.BIRD;
-            case "reptilia", "reptile" -> SpeciesCategory.REPTILE;
-            case "amphibia", "amphibian" -> SpeciesCategory.AMPHIBIAN;
-            case "actinopterygii", "fish" -> SpeciesCategory.FISH;
-            case "insecta", "insect" -> SpeciesCategory.INSECT;
-            case "arachnida", "arachnid" -> SpeciesCategory.ARACHNID;
-            case "crustacea" -> SpeciesCategory.CRUSTACEAN;
-            case "mollusca", "mollusc" -> SpeciesCategory.MOLLUSC;
-            case "fungi" -> SpeciesCategory.FUNGI;
-            case "plantae", "plant" -> SpeciesCategory.PLANT;
-            case "algae" -> SpeciesCategory.ALGAE;
-            default -> SpeciesCategory.OTHER;
-        };
-    }
 }
