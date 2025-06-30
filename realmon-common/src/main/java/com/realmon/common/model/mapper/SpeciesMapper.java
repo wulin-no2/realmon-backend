@@ -10,7 +10,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface SpeciesMapper {
     @Mapping(target = "icon", expression = "java(entity.getIcon())")
+    @Mapping(target = "imageUrls", expression = "java(entity.getImageUrls())")
     SpeciesDTO toDTO(Species entity);
+
     List<SpeciesDTO> toDTOs(List<Species> entities);
 
     Species toEntity(SpeciesDTO dto);

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +19,5 @@ public class SpeciesDTO {
     private String wikiUrl;
     private String icon;
     private SpeciesCategory category;
+    private List<String> imageUrls;
 }

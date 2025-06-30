@@ -1,5 +1,7 @@
 package com.realmon.backend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.realmon.backend.repository.SpeciesRepository;
 import com.realmon.common.model.dto.SpeciesDTO;
 import com.realmon.common.model.entity.Species;
@@ -9,8 +11,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,6 +26,9 @@ public class SpeciesService {
 
     private final SpeciesRepository repository;
     private final SpeciesMapper mapper;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Operation(summary = "Get all species")
     public List<SpeciesDTO> getAll() {
@@ -50,27 +58,80 @@ public class SpeciesService {
 
     }
 
+//    /**
+//     * helper function for recording species when scanning or exploring
+//     * @param speciesId
+//     * @param name
+//     * @param scientificName
+//     * @param wikiUrl
+//     * @param category
+//     * @return
+//     */
+//    @Operation(summary = "Get or create species")
+//    public Species getOrCreateSpecies(String speciesId, String name, String scientificName, String wikiUrl, SpeciesCategory category) {
+//        return repository.findById(speciesId).orElseGet(() -> {
+//            Species species = Species.builder()
+//                    .id(speciesId)
+//                    .name(name != null ? name : scientificName)
+//                    .scientificName(scientificName)
+//                    .wikiUrl(wikiUrl)
+//                    .category(category != null ? category : SpeciesCategory.OTHER)
+//                    .build();
+//            return repository.save(species);
+//        });
+//    }
+
     /**
-     * helper function for recording species when scanning or exploring
-     * @param speciesId
-     * @param name
-     * @param scientificName
-     * @param wikiUrl
-     * @param category
+     * get images when creating or updating species
+     * @param taxonId
      * @return
      */
-    @Operation(summary = "Get or create species")
-    public Species getOrCreateSpecies(String speciesId, String name, String scientificName, String wikiUrl, SpeciesCategory category) {
-        return repository.findById(speciesId).orElseGet(() -> {
-            Species species = Species.builder()
-                    .id(speciesId)
-                    .name(name != null ? name : scientificName)
-                    .scientificName(scientificName)
-                    .wikiUrl(wikiUrl)
-                    .category(category != null ? category : SpeciesCategory.OTHER)
-                    .build();
-            return repository.save(species);
-        });
+    public Species createOrUpdateSpeciesWithImages(String taxonId) {
+        Species species = repository.findById(taxonId)
+                .orElseGet(() -> {
+                    log.warn("Species {} not found in DB. Saving minimal record.", taxonId);
+                    Species fallback = Species.builder()
+                            .id(taxonId)
+                            .name("[Unknown Species]")
+                            .build();
+                    return repository.save(fallback);
+                });
+
+        // if no images, get them from iNaturalist
+        if (species.getImageUrl1() == null) {
+            List<String> images = fetchTaxonImages(taxonId);
+            if (images.size() > 0) species.setImageUrl1(images.get(0));
+            if (images.size() > 1) species.setImageUrl2(images.get(1));
+            if (images.size() > 2) species.setImageUrl3(images.get(2));
+            repository.save(species);
+            log.info("Fetched iNaturalist images: {}", images);
+        }
+        return species;
     }
+
+    /**
+     * get 3 images with iNaturalist api
+     * @param taxonId
+     * @return
+     */
+    private List<String> fetchTaxonImages(String taxonId) {
+        String url = "https://api.inaturalist.org/v1/taxa/" + taxonId;
+        try {
+            ResponseEntity<String> res = restTemplate.getForEntity(url, String.class);
+            JsonNode root = objectMapper.readTree(res.getBody());
+            JsonNode photos = root.path("results").get(0).path("taxon_photos");
+
+            List<String> urls = new ArrayList<>();
+            for (int i = 0; i < Math.min(3, photos.size()); i++) {
+                String imageUrl = photos.get(i).path("photo").path("medium_url").asText();
+                urls.add(imageUrl);
+            }
+            return urls;
+        } catch (Exception e) {
+            log.warn("Failed to fetch images from iNaturalist: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
 
 }
