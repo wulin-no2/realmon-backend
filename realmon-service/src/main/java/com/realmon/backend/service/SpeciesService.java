@@ -58,29 +58,6 @@ public class SpeciesService {
 
     }
 
-//    /**
-//     * helper function for recording species when scanning or exploring
-//     * @param speciesId
-//     * @param name
-//     * @param scientificName
-//     * @param wikiUrl
-//     * @param category
-//     * @return
-//     */
-//    @Operation(summary = "Get or create species")
-//    public Species getOrCreateSpecies(String speciesId, String name, String scientificName, String wikiUrl, SpeciesCategory category) {
-//        return repository.findById(speciesId).orElseGet(() -> {
-//            Species species = Species.builder()
-//                    .id(speciesId)
-//                    .name(name != null ? name : scientificName)
-//                    .scientificName(scientificName)
-//                    .wikiUrl(wikiUrl)
-//                    .category(category != null ? category : SpeciesCategory.OTHER)
-//                    .build();
-//            return repository.save(species);
-//        });
-//    }
-
     /**
      * get images when creating or updating species
      * @param taxonId
