@@ -24,6 +24,8 @@ public class User {
     @ToString.Include
     private String username;
 
+    private int coins;
+
     private String source;      // "local" / "inaturalist"
     private String externalId;  // iNat user ID, can be null
     private String avatarUrl;

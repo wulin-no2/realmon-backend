@@ -15,4 +15,5 @@ public class UserDTO {
     private String source;
     private String externalId;
     private String avatarUrl;
+    private int coins;
 }

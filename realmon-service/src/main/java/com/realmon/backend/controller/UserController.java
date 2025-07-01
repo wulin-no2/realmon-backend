@@ -1,5 +1,6 @@
 package com.realmon.backend.controller;
 
+import com.realmon.backend.service.DailyQuestService;
 import com.realmon.backend.service.UserService;
 import com.realmon.backend.utils.JwtUtil;
 import com.realmon.common.model.dto.*;
@@ -20,6 +21,8 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
+    private final DailyQuestService dailyQuestService;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -59,23 +62,35 @@ public class UserController {
     ) {
         Long userId = user.getId();
         UserSpeciesDTO collected = service.collectSpecies(userId, request);
+
         return ResponseEntity.ok(collected);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserProfileDTO> getMe(@AuthenticationPrincipal User user) {
         if (user == null) return ResponseEntity.status(401).build();
+        // initialise daily quests
+        dailyQuestService.initialiseDailyQuests(user.getId());
+        List<DailyQuestDTO> todayQuests = dailyQuestService.getTodayQuests(user.getId());
 
+        // return user info
         UserDTO dto = UserDTO.builder()
                 .id(user.getId())
+                .coins(user.getCoins())
                 .username(user.getUsername())
                 .source(user.getSource())
                 .externalId(user.getExternalId())
                 .avatarUrl(user.getAvatarUrl())
                 .build();
+        UserProfileDTO profile = UserProfileDTO.builder()
+                .user(dto)
+                .dailyQuests(todayQuests)
+                .build();
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profile);
     }
+
+
 
 
 

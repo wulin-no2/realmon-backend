@@ -31,16 +31,18 @@ import java.util.stream.Collectors;
 @Tag(name = "User API", description = "Endpoints for managing users")
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final SpeciesRepository speciesRepository;
     private final UserSpeciesRepository userSpeciesRepository;
     private final ObservationRepository observationRepository;
     private final UserMapper mapper;
     private final UserSpeciesMapper userSpeciesMapper;
+    private final DailyQuestService dailyQuestService;
+
 
     @Operation(summary = "Get all users")
     public List<UserDTO> getAllUsers() {
-        List<User> list = repository.findAll();
+        List<User> list = userRepository.findAll();
         log.info("get all users{} ",list);
         return mapper.toDTOs(list);
     }
@@ -48,24 +50,24 @@ public class UserService {
     @Operation(summary = "Save user info")
     public User save(User user) {
         log.info("save user info, {}", user);
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     @Operation(summary = "find user info by id")
     public User findById(Long id) {
-        return repository.findById(id)
+        return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Operation(summary = "find user info by username and password")
     public User findByUsernameAndPassword(String username, String password) {
-        return repository.findByUsernameAndPassword(username, password)
+        return userRepository.findByUsernameAndPassword(username, password)
                 .orElse(null); //
     }
 
     @Operation(summary = "user upload image and collects species")
     public UserSpeciesDTO collectSpecies(Long userId, CollectRequestDTO request) {
-        User user = repository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Species species = speciesRepository.findById(request.getSpeciesId())
@@ -87,13 +89,15 @@ public class UserService {
             obs = observationRepository.save(obs);
         }
 
-        // check if user_species exists
+        // check if user_species exists and save it
         Optional<UserSpecies> existing = userSpeciesRepository
                 .findByUserIdAndSpeciesId(userId, request.getSpeciesId());
+        boolean isNewSpecies;
 
         UserSpecies userSpecies;
         if (existing.isPresent()) {
             userSpecies = existing.get(); // don't insert repeatedly
+            isNewSpecies = false;
         } else {
             userSpecies = UserSpecies.builder()
                     .user(user)
@@ -102,7 +106,12 @@ public class UserService {
                     .collectedAt(LocalDateTime.now())
                     .build();
             userSpecies = userSpeciesRepository.save(userSpecies);
+            isNewSpecies = true;
         }
+
+        // complete daily quest
+        dailyQuestService.updateQuestsAfterObservation(findById(userId), isNewSpecies, species.getName());
+
 
         return userSpeciesMapper.toDTO(userSpecies);
     }
