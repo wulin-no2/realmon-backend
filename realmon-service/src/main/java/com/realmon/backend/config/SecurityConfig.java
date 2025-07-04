@@ -26,6 +26,7 @@ public class SecurityConfig {
                                 "/api/species/**",            // for species
                                 "/api/observations/nearby",   // for map
                                 "/api/scan",
+                                "/api/post/recent",          // for recent posts
                                 "/api/user/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

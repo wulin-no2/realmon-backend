@@ -38,6 +38,7 @@ public class UserService {
     private final UserMapper mapper;
     private final UserSpeciesMapper userSpeciesMapper;
     private final DailyQuestService dailyQuestService;
+    private final PostService postService;
 
 
     @Operation(summary = "Get all users")
@@ -112,6 +113,8 @@ public class UserService {
         // complete daily quest
         dailyQuestService.updateQuestsAfterObservation(findById(userId), isNewSpecies, species.getName());
 
+        // create post
+        postService.createPostFromObservation(obs);
 
         return userSpeciesMapper.toDTO(userSpecies);
     }
