@@ -63,7 +63,20 @@ public class UserController {
         Long userId = user.getId();
         UserSpeciesDTO collected = service.collectSpecies(userId, request);
 
-        return ResponseEntity.ok(collected);
+//        return ResponseEntity.ok(collected);
+        // refresh user to avoid cache
+        User updatedUser = service.findById(userId);
+
+        // get updated daily quest
+        List<DailyQuestDTO> todayQuests = dailyQuestService.getTodayQuests(userId);
+
+        return ResponseEntity.ok(
+                CollectResponseDTO.builder()
+                        .collected(collected)
+                        .dailyQuests(todayQuests)
+                        .coins(updatedUser.getCoins())
+                        .build()
+        );
     }
 
     @GetMapping("/me")

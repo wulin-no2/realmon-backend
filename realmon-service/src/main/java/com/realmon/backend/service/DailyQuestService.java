@@ -84,6 +84,10 @@ public class DailyQuestService {
             }
 
             dailyQuestProgressRepository.save(quest);
+            log.info("✅ Updated quest {}: completed={}, progress={}",
+                    quest.getQuestType(), quest.isCompleted(), quest.getProgress());
+
+
         }
     }
 
@@ -132,7 +136,12 @@ public class DailyQuestService {
                     .rewardCoins(quest.getRewardCoins())
                     .description(quest.getExtraInfo())
                     .build());
+            log.info("🎯 Returning quest {}: completed={}, progress={}",
+                    quest.getQuestType(), quest.isCompleted(), quest.getProgress());
         }
+
+
+
         return dtos;
     }
 
