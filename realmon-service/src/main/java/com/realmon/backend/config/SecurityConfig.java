@@ -21,8 +21,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/login",
-                                "/api/users/register",        // for registration
+                        .requestMatchers("/api/user/login",
+                                "/api/user/register",        // for registration
                                 "/api/species/**",            // for species
                                 "/api/observations/nearby",   // for map
                                 "/api/scan",

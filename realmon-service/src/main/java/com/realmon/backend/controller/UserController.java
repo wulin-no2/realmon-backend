@@ -6,6 +6,7 @@ import com.realmon.backend.utils.JwtUtil;
 import com.realmon.common.model.dto.*;
 import com.realmon.common.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -103,6 +105,18 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
+
+    @PostMapping("/me/push-token")
+    public ResponseEntity<?> saveExpoPushToken(
+            @RequestBody ExpoPushTokenDTO dto,
+            @AuthenticationPrincipal User user
+    ) {
+        log.info("Saving ExpoPushToken for user {}: {}", user.getId(), dto.getExpoPushToken());
+
+        user.setExpoPushToken(dto.getExpoPushToken());
+        service.save(user);
+        return ResponseEntity.ok().build();
+    }
 
 
 

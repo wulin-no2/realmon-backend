@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class UserService {
     private final UserSpeciesMapper userSpeciesMapper;
     private final DailyQuestService dailyQuestService;
     private final PostService postService;
+    private final NotificationService notificationService;
 
 
     @Operation(summary = "Get all users")
@@ -116,6 +118,16 @@ public class UserService {
         // create post
         postService.createPostFromObservation(obs);
 
+        // send notification for new species
+        if (isNewSpecies) {
+            notificationService.createAndSend(
+                    user,
+                    "New Realmon Spotted!",
+                    "You discovered a new species: " + species.getName(),
+                    Map.of("speciesId", species.getId())
+            );
+        }
+
         return userSpeciesMapper.toDTO(userSpecies);
     }
 
@@ -139,6 +151,11 @@ public class UserService {
                 .badges(badges)
                 .items(items)
                 .build();
+    }
+
+    public void updateExpoPushToken(User user, String token) {
+        user.setExpoPushToken(token);
+        userRepository.save(user);
     }
 
 
