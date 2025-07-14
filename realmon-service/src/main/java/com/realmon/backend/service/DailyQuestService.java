@@ -2,6 +2,7 @@ package com.realmon.backend.service;
 
 import com.realmon.backend.repository.DailyQuestProgressRepository;
 import com.realmon.backend.repository.UserRepository;
+import com.realmon.backend.utils.TransactionHelper;
 import com.realmon.common.model.dto.DailyQuestDTO;
 import com.realmon.common.model.entity.DailyQuestProgress;
 import com.realmon.common.model.entity.DailyQuestType;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -21,6 +24,8 @@ public class DailyQuestService {
 
     private final DailyQuestProgressRepository dailyQuestProgressRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final TransactionHelper transactionHelper;
 
     /**
      * initialise daily quests. initialise it once in /api/user/me
@@ -78,12 +83,29 @@ public class DailyQuestService {
             if (completedNow) {
                 quest.setCompleted(true);
                 quest.setProgress(1);
+                int reward = getRewardForQuest(quest.getQuestType());
                 // give rewards
-                user.setCoins(user.getCoins() + getRewardForQuest(quest.getQuestType()));
+                user.setCoins(user.getCoins() + reward);
                 userRepository.save(user);
+                dailyQuestProgressRepository.save(quest);
+
+                // log and notify after commit
+                log.info("🎉 Quest {} completed! User {} earned {} coins.", quest.getQuestType(), user.getUsername(), reward);
+                transactionHelper.runAfterCommit(() -> {
+                    notificationService.createAndSend(
+                            user,
+                            "🎯 Quest Completed!",
+                            "You completed '" + quest.getQuestType().getDisplayName() + "' and earned " + reward + " coins.",
+                            Map.of(
+                                    "questType", quest.getQuestType().name(),
+                                    "coins", reward
+                            )
+                    );
+                });
+
             }
 
-            dailyQuestProgressRepository.save(quest);
+
             log.info("✅ Updated quest {}: completed={}, progress={}",
                     quest.getQuestType(), quest.isCompleted(), quest.getProgress());
 

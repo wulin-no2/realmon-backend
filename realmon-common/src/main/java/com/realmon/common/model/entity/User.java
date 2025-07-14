@@ -30,4 +30,6 @@ public class User {
     private String externalId;  // iNat user ID, can be null
     private String avatarUrl;
     private String password;
+    private String expoPushToken; // for push notifications
+
 }
