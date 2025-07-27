@@ -39,8 +39,9 @@ public class INaturalistScanService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final InaturalistConfig inaturalistConfig;
+//    private final InaturalistConfig inaturalistConfig;
 //    private final SpeciesRepository speciesRepository;
+    private final InatTokenService inatTokenService; // get token from databases
     private final SpeciesSyncService speciesSyncService;
 
     private static final String INAT_CV_URL = "https://api.inaturalist.org/v1/computervision/score_image";
@@ -58,9 +59,11 @@ public class INaturalistScanService {
         // compress file
         File compressedFile = ImageCompressor.compressIfNeeded(imageFile);
 
+        // Prepare headers with iNaturalist token
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Authorization", "Bearer " + inaturalistConfig.getToken()); // iNaturalist token
+        headers.setBearerAuth(inatTokenService.getToken()); //get iNaturalist token from database
+//        headers.set("Authorization", "Bearer " + inaturalistConfig.getToken());
 
         // Prepare the multipart request
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -72,6 +75,8 @@ public class INaturalistScanService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
+        // Send POST request to iNaturalist API
+        log.info("Sending request to iNaturalist: {}", INAT_CV_URL);
         ResponseEntity<String> response = restTemplate.exchange(
                 INAT_CV_URL,
                 HttpMethod.POST,
@@ -82,6 +87,7 @@ public class INaturalistScanService {
         // delete compressed file
         compressedFile.delete();
 
+        // deal with response
         log.info("Response from iNaturalist: {}", response.getBody());
 
         List<ScanResultDTO> results = new ArrayList<>();
@@ -113,6 +119,8 @@ public class INaturalistScanService {
                         .imageUrl(photo.path("large_url").asText(photo.path("medium_url").asText(null)))
                         .build());
             }
+        }else {
+            log.error("iNaturalist API error: {}", response.getStatusCode());
         }
 
         return results;

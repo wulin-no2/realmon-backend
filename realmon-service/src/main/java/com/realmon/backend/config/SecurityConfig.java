@@ -32,6 +32,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers("/api/scan/refresh-token").authenticated()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable()) //
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
