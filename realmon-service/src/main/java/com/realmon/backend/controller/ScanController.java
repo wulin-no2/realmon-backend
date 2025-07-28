@@ -1,6 +1,7 @@
 package com.realmon.backend.controller;
 
 import com.realmon.backend.service.INaturalistScanService;
+import com.realmon.backend.service.InatTokenService;
 import com.realmon.common.model.dto.ScanResultDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.List;
 public class ScanController {
 
     private final INaturalistScanService iNaturalistScanService;
+    private final InatTokenService inatTokenService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<ScanResultDTO>> scanImage(@RequestParam("image") MultipartFile image) {
@@ -35,5 +37,7 @@ public class ScanController {
                     .body(Collections.emptyList());
         }
     }
+
+
 }
 

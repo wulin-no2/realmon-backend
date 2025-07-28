@@ -8,6 +8,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "inat")
 @Data
 public class InaturalistConfig {
-    private String token;
+//    private String token;
+//    private String clientId;
+//    private String clientSecret;
+    private String username;
+    private String password;
 }
 
