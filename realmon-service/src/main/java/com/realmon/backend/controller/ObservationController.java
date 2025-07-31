@@ -7,10 +7,11 @@ import com.realmon.common.model.dto.ObservationDTO;
 import com.realmon.common.model.entity.Observation;
 import com.realmon.common.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.XSlf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/observations")
 @RequiredArgsConstructor
+@Slf4j
 public class ObservationController {
 
     private final ObservationService service;
@@ -62,10 +64,12 @@ public class ObservationController {
      * @return
      */
     @GetMapping("/nearby")
-    public List<ObservationDTO> getNearby(@RequestParam double lat,
-                                          @RequestParam double lon,
-                                          @RequestParam(defaultValue = "5.0") double radiusKm
+    public List<ObservationDTO> getNearby(@RequestParam("lat") double lat,
+                                          @RequestParam("lon") double lon,
+                                          @RequestParam(name = "radiusKm", defaultValue = "5.0") double radiusKm
     ) {
+        log.info("ObservationController hit");
+
         List<ObservationDTO> userObservations = service.findNearby(lat, lon, radiusKm);
         List<ObservationDTO> inatObservations = iNaturalistService.getNearbyFromINat(lat, lon, (int)radiusKm, 10);
 
