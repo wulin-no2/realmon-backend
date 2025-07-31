@@ -24,10 +24,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/login",
                                 "/api/user/register",        // for registration
                                 "/api/species/**",            // for species
-                                "/api/observations/nearby",   // for map
+                                "/api/observations/**",   // for map
                                 "/api/scan",
                                 "/api/post/recent",          // for recent posts
                                 "/api/user/**",
+                                "/api/daily-quest/**", // for daily quests
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
