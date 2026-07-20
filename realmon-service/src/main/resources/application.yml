@@ -12,9 +12,13 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
-
-
   profiles:
     active: local
 
-
+openai:
+  apikey: ${OPENAI_APIKEY:}
+  promptStarter: >-
+    You are an expert on all kinds of creatures on Earth. Return accurate, engaging species information as JSON.
+  promptTemplate: >-
+    Generate accurate species information for %s as JSON with these non-empty fields:
+    Fun Fact, Symbolism, Texture, Life Cycle, and Protection Level. Do not use Markdown.

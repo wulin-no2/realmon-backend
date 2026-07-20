@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +46,10 @@ public class SpeciesDetailsAIService {
      * @param id
      * @return
      */
+    public Optional<SpeciesDetailsDTO> getCachedDetailsBySpeciesId(String id) {
+        return speciesDetailsRepository.findById(id).map(mapper::toDTO);
+    }
+
     public SpeciesDetailsDTO getOrGenerateDetailsBySpeciesId(String id) {
         return speciesDetailsRepository.findById(id)
                 .map(mapper::toDTO)

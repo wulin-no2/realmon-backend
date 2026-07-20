@@ -52,6 +52,7 @@ Create a root `.env` file or export secure values in your shell:
 ```bash
 MYSQL_ROOT_PASSWORD=change-me
 JWT_SECRET=replace-with-at-least-32-random-bytes
+OPENAI_APIKEY=replace-with-your-api-key
 ```
 
 ```bash
