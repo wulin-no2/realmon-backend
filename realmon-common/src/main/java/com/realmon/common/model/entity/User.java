@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter
@@ -35,6 +36,7 @@ public class User {
     private String expoPushToken; // for push notifications
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(20)")
     @Builder.Default
     private UserRole role = UserRole.USER;
 

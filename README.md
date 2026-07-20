@@ -90,6 +90,23 @@ Tests use an isolated in-memory H2 database and do not require local MySQL:
 ./mvnw test
 ```
 
+## 🗄 Database migrations
+
+Flyway owns schema changes and Hibernate validates the migrated schema. New databases run every migration from `V1`; an existing non-empty database without Flyway history is baselined at version 1 and then receives the compatibility and constraint migrations.
+
+Before the first deployment to an existing database:
+
+1. Take and verify a MySQL backup.
+2. Check for duplicate usernames:
+   `SELECT username, COUNT(*) FROM user GROUP BY username HAVING COUNT(*) > 1;`
+3. Check for duplicate collections:
+   `SELECT user_id, species_id, COUNT(*) FROM user_species WHERE user_id IS NOT NULL AND species_id IS NOT NULL GROUP BY user_id, species_id HAVING COUNT(*) > 1;`
+4. Resolve any returned rows deliberately.
+5. Set `FLYWAY_BASELINE_ON_MIGRATE=true` for the first deployment only, then deploy.
+6. Confirm `flyway_schema_history` contains versions 1–3, remove the temporary environment flag, and restart normally.
+
+The migration aborts without deleting data when either duplicate condition remains. New empty databases do not need the baseline flag. After the first successful deployment, the `flyway_schema_history` table records all applied migrations and checksums.
+
 ## 🌐 Frontend development
 
 The backend accepts browser requests from local `localhost` and `127.0.0.1` development ports. Additional deployed frontend origins can be supplied as a comma-separated environment property:

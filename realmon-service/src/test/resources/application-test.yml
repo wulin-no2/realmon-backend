@@ -6,9 +6,12 @@ spring:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
 
 jwt:
   secret: test-only-secret-key-that-is-at-least-32-bytes-long
