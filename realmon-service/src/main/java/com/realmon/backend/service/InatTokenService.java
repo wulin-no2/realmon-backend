@@ -36,7 +36,7 @@ public class InatTokenService {
         tokenEntity.setUpdatedAt(LocalDateTime.now());
         tokenRepository.save(tokenEntity);
         this.currentToken = newToken;
-        System.out.println("✅ iNaturalist token updated manually: " + newToken.substring(0, 10) + "...");
+        System.out.println("✅ iNaturalist token updated manually.");
     }
 
     public String getToken() {

@@ -75,6 +75,7 @@ public class UserService {
                 .username(username)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .source("local")
+                .role(com.realmon.common.model.entity.UserRole.USER)
                 .build();
         return mapper.toDTO(userRepository.save(user));
     }

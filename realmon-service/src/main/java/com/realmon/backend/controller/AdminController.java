@@ -15,6 +15,6 @@ public class AdminController {
     @PostMapping("/refresh-token")
     public String refresh(@RequestBody String token) {
         inatTokenService.updateToken(token.trim());
-        return "Refreshed token: " + token;
+        return "Token refreshed";
     }
 }
