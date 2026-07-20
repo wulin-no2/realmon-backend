@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Enforce English-only repository text
+        run: |
+          if git grep -nI -P '[\x{3400}-\x{4DBF}\x{4E00}-\x{9FFF}\x{F900}-\x{FAFF}]' -- .; then
+            echo "CJK characters are not allowed in repository text files."
+            exit 1
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

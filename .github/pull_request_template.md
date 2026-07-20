@@ -1,29 +1,41 @@
-## 📋 Description
+## Description
 
-Describe what this PR does, including any new endpoints, logic, or changes.
+Describe the problem, the root cause when applicable, and the solution.
 
-## 🔗 Related Issues / Tickets
+## Related issues
 
 - Closes #[issue-id] (if applicable)
 
-## ✅ Checklist
+## Validation
 
-- [ ] All new endpoints are documented
-- [ ] Unit tests / integration tests added or updated
-- [ ] No breaking changes for frontend consumers
-- [ ] Code compiles and passes tests
+List the commands and manual checks used to validate this change.
 
-## 🧪 How to Test
+```text
+./mvnw --batch-mode verify
+```
 
-1. Run application locally with `./mvnw spring-boot:run`
-2. Test with Postman/cURL or connect via frontend
-3. ...
+## Change checklist
 
-## ⚠️ Breaking Changes
+- [ ] The change is focused and contains no unrelated files.
+- [ ] Tests were added or updated for changed behavior.
+- [ ] Documentation was updated where needed.
+- [ ] API compatibility with frontend consumers was considered.
+- [ ] No secrets or environment-specific credentials are included.
+- [ ] All repository content added by this PR is in English.
 
-- [ ] Yes (please explain)
-- [ ] No
+## Database and deployment impact
 
-## 🧠 Notes
+- [ ] No database change.
+- [ ] Includes a new Flyway migration that has been reviewed.
+- [ ] Requires a new or changed environment variable.
+- [ ] Requires a special deployment step documented below.
 
-Any database migrations, special deployment steps, or follow-up actions?
+Describe deployment ordering, compatibility requirements, and verification steps. Use `docs/DEPLOYMENT.md` for database releases.
+
+## Rollback
+
+Explain how to disable or roll back the change. State when a database restore or forward-fix migration would be required.
+
+## Follow-up work
+
+Link GitHub Issues for work intentionally left out of this pull request. Write `None` when there is no follow-up.
