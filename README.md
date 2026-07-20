@@ -94,6 +94,8 @@ Tests use an isolated in-memory H2 database and do not require local MySQL:
 
 Flyway owns schema changes and Hibernate validates the migrated schema. New databases run every migration from `V1`; an existing non-empty database without Flyway history is baselined at version 1 and then receives the compatibility and constraint migrations.
 
+Follow the required [deployment runbook](docs/DEPLOYMENT.md) for every release. The runbook is the source of truth for the first Flyway deployment, verification, and rollback.
+
 Before the first deployment to an existing database:
 
 1. Take and verify a MySQL backup.
