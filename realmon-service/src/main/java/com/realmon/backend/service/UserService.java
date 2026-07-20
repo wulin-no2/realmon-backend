@@ -17,7 +17,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -41,6 +46,7 @@ public class UserService {
     private final DailyQuestService dailyQuestService;
     private final PostService postService;
     private final NotificationService notificationService;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Operation(summary = "Get all users")
@@ -56,6 +62,23 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public UserDTO register(RegisterRequest request) {
+        String username = request.getUsername().trim();
+        if (username.length() < 3) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username must be at least 3 characters");
+        }
+        if (userRepository.existsByUsername(username)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+        }
+
+        User user = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(request.getPassword()))
+                .source("local")
+                .build();
+        return mapper.toDTO(userRepository.save(user));
+    }
+
     @Operation(summary = "find user info by id")
     public User findById(Long id) {
         return userRepository.findById(id)
@@ -63,9 +86,30 @@ public class UserService {
     }
 
     @Operation(summary = "find user info by username and password")
-    public User findByUsernameAndPassword(String username, String password) {
-        return userRepository.findByUsernameAndPassword(username, password)
-                .orElse(null); //
+    public User authenticate(String username, String password) {
+        Optional<User> result = userRepository.findByUsername(username.trim());
+        if (result.isEmpty() || result.get().getPassword() == null) {
+            return null;
+        }
+
+        User user = result.get();
+        String storedPassword = user.getPassword();
+        if (isBcryptHash(storedPassword)) {
+            return passwordEncoder.matches(password, storedPassword) ? user : null;
+        }
+
+        if (!MessageDigest.isEqual(
+                password.getBytes(StandardCharsets.UTF_8),
+                storedPassword.getBytes(StandardCharsets.UTF_8))) {
+            return null;
+        }
+
+        user.setPassword(passwordEncoder.encode(password));
+        return userRepository.save(user);
+    }
+
+    private boolean isBcryptHash(String password) {
+        return password.matches("^\\$2[aby]\\$\\d{2}\\$.{53}$");
     }
 
     @Operation(summary = "user upload image and collects species")
