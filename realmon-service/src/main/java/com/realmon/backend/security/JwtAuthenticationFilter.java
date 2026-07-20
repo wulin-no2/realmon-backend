@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import com.realmon.common.model.entity.UserRole;
 
 
 @Slf4j
@@ -38,8 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Long userId = jwtUtil.extractUserId(token);
                 User user = userService.findById(userId);
+                UserRole role = user.getRole() == null ? UserRole.USER : user.getRole();
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 log.error("JWT filter error", e);

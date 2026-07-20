@@ -98,6 +98,16 @@ The backend accepts browser requests from local `localhost` and `127.0.0.1` deve
 APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://app.example.com
 ```
 
+## 🔐 Administrator access
+
+New and existing accounts have user-level access by default. Promote the first administrator directly in MySQL after that account has registered:
+
+```sql
+UPDATE `user` SET role = 'ADMIN' WHERE username = 'your-admin-username';
+```
+
+Administrative endpoints require the `ADMIN` role. Registration requests cannot assign roles.
+
 ---
 
 ## 📄 License
