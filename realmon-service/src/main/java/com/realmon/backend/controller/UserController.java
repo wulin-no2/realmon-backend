@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import jakarta.validation.Valid;
 
 
 import java.util.List;
@@ -42,13 +43,13 @@ public class UserController {
 
 
     @PostMapping
-    public User create(@RequestBody User user) {
-        return service.save(user);
+    public ResponseEntity<UserDTO> create(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        User user = service.findByUsernameAndPassword(request.getUsername(), request.getPassword());
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        User user = service.authenticate(request.getUsername(), request.getPassword());
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
@@ -111,7 +112,7 @@ public class UserController {
             @RequestBody ExpoPushTokenDTO dto,
             @AuthenticationPrincipal User user
     ) {
-        log.info("Saving ExpoPushToken for user {}: {}", user.getId(), dto.getExpoPushToken());
+        log.info("Saving Expo push token for user {}", user.getId());
 
         user.setExpoPushToken(dto.getExpoPushToken());
         service.save(user);
