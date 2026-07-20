@@ -21,7 +21,16 @@ git clone https://github.com/yourusername/realmon-backend.git
 cd realmon-backend
 ```
 
-### 2. Configure Environment
+### 2. Use Java 17
+
+The build enforces Java 17. Check the active JVM before running Maven:
+
+```bash
+java -version
+./mvnw -version
+```
+
+### 3. Configure Environment
 
 Copy example configuration files and customize your local setup:
 
@@ -30,7 +39,7 @@ cp realmon-service/src/main/resources/application-local.example.yml realmon-serv
 cp realmon-service/src/main/resources/application-docker.example.yml realmon-service/src/main/resources/application-docker.yml
 ```
 
-Then edit these files to fit your environment (e.g., database password).
+Then edit the local file to fit your environment. At minimum, configure the MySQL datasource, JWT secret, and OpenAI settings used by AI species details.
 
 > ❗ **Do not commit `application-local.yml` or `application-docker.yml`.** They are listed in `.gitignore`.
 
@@ -38,8 +47,15 @@ Then edit these files to fit your environment (e.g., database password).
 
 ## 🐳 Running with Docker
 
+Create a root `.env` file or export secure values in your shell:
+
 ```bash
-docker-compose up --build
+MYSQL_ROOT_PASSWORD=change-me
+JWT_SECRET=replace-with-at-least-32-random-bytes
+```
+
+```bash
+docker compose up --build
 ```
 
 This will start:
@@ -51,10 +67,32 @@ This will start:
 
 ## 🧪 Development
 
-To run locally without Docker, ensure you have a MySQL database running and configured in `application-local.yml`, then:
+To run locally without Docker, ensure MySQL is running and `application-local.yml` is configured, then build and run the executable service jar:
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+./mvnw package
+java -jar realmon-service/target/realmon-service-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=local
+```
+
+The multi-module root is an aggregator, so running `spring-boot:run` directly at the root is not supported.
+
+To load the optional sample data, add `demo` to the active profiles. The normal `local` and `docker` profiles never clear or reseed the `realmon` table.
+
+## 🧪 Tests
+
+Tests use an isolated in-memory H2 database and do not require local MySQL:
+
+```bash
+./mvnw test
+```
+
+## 🌐 Frontend development
+
+The backend accepts browser requests from local `localhost` and `127.0.0.1` development ports. Additional deployed frontend origins can be supplied as a comma-separated environment property:
+
+```bash
+APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://app.example.com
 ```
 
 ---
