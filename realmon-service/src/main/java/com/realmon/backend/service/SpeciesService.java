@@ -27,7 +27,7 @@ public class SpeciesService {
     private final SpeciesRepository repository;
     private final SpeciesMapper mapper;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Operation(summary = "Get all species")

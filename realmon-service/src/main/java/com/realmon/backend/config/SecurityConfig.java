@@ -1,6 +1,7 @@
 package com.realmon.backend.config;
 
 import com.realmon.backend.security.JwtAuthenticationFilter;
+import com.realmon.backend.security.ApiRateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ApiRateLimitFilter apiRateLimitFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,7 +44,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, exception) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
                 .csrf(csrf -> csrf.disable())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(apiRateLimitFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

@@ -22,3 +22,8 @@ openai:
   promptTemplate: >-
     Generate accurate species information for %s as JSON with these non-empty fields:
     Fun Fact, Symbolism, Texture, Life Cycle, and Protection Level. Do not use Markdown.
+
+app:
+  rate-limit:
+    scan-requests-per-minute: ${SCAN_REQUESTS_PER_MINUTE:6}
+    generation-requests-per-minute: ${GENERATION_REQUESTS_PER_MINUTE:3}

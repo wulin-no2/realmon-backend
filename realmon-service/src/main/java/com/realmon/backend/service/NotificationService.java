@@ -17,6 +17,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,9 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     /**
      * Create and send notification
@@ -72,7 +76,6 @@ public class NotificationService {
             return;
         }
 
-        HttpClient client = HttpClient.newHttpClient();
         Map<String, Object> payload = new HashMap<>();
         payload.put("to", user.getExpoPushToken());
         payload.put("title", title);
@@ -85,11 +88,12 @@ public class NotificationService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://exp.host/--/api/v2/push/send"))
+                .timeout(Duration.ofSeconds(15))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         String responseBody = response.body();
 
         log.info("Expo Push Response: {}", responseBody);

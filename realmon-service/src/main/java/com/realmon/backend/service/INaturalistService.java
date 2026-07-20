@@ -26,7 +26,7 @@ import java.util.Optional;
 public class INaturalistService {
 
     private final SpeciesRepository speciesRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SpeciesSyncService speciesSyncService;
 
