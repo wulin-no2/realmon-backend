@@ -108,6 +108,17 @@ UPDATE `user` SET role = 'ADMIN' WHERE username = 'your-admin-username';
 
 Administrative endpoints require the `ADMIN` role. Registration requests cannot assign roles.
 
+## 🛡 External-service protection
+
+The backend limits each client to 6 scan requests per minute and each authenticated user to 3 AI species-detail generations per minute. Override these limits when needed:
+
+```bash
+SCAN_REQUESTS_PER_MINUTE=6
+GENERATION_REQUESTS_PER_MINUTE=3
+```
+
+Outbound REST calls use a 5-second connection timeout and a 15-second read timeout. Rate-limit counters are stored in memory; use a shared Redis-backed limiter before running multiple backend instances.
+
 ---
 
 ## 📄 License

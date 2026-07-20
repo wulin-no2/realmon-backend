@@ -37,7 +37,7 @@ public class INaturalistScanService {
     // TODO: Return top 1–3 results and let users confirm the correct species
 
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 //    private final InaturalistConfig inaturalistConfig;
 //    private final SpeciesRepository speciesRepository;
@@ -66,26 +66,25 @@ public class INaturalistScanService {
 //        headers.set("Authorization", "Bearer " + inaturalistConfig.getToken());
 
         // Prepare the multipart request
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", new MultipartInputStreamFileResource(
-                new FileInputStream(compressedFile),
-                compressedFile.getName())
-        );
-        log.info("filename = {}" ,imageFile.getOriginalFilename());
+        ResponseEntity<String> response;
+        try (FileInputStream inputStream = new FileInputStream(compressedFile)) {
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("image", new MultipartInputStreamFileResource(inputStream, compressedFile.getName()));
+            log.info("filename = {}", imageFile.getOriginalFilename());
 
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        // Send POST request to iNaturalist API
-        log.info("Sending request to iNaturalist: {}", INAT_CV_URL);
-        ResponseEntity<String> response = restTemplate.exchange(
-                INAT_CV_URL,
-                HttpMethod.POST,
-                requestEntity,
-                String.class
-        );
-
-        // delete compressed file
-        compressedFile.delete();
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            log.info("Sending request to iNaturalist: {}", INAT_CV_URL);
+            response = restTemplate.exchange(
+                    INAT_CV_URL,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+        } finally {
+            if (!compressedFile.delete()) {
+                compressedFile.deleteOnExit();
+            }
+        }
 
         // deal with response
         log.info("Response from iNaturalist: {}", response.getBody());

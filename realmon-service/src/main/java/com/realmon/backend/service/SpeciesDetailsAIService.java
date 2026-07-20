@@ -38,7 +38,7 @@ public class SpeciesDetailsAIService {
     private final SpeciesService speciesService;
 
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
