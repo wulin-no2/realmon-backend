@@ -4,11 +4,13 @@ import com.realmon.backend.repository.RealmonRepository;
 import com.realmon.common.model.entity.Realmon;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Profile("demo")
 @RequiredArgsConstructor
 public class RealmonDataInitializer {
 

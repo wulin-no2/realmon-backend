@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -21,12 +22,21 @@ public class SpeciesDetailsController {
     private final SpeciesService speciesService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get species details by ID", description = "Returns AI-enhanced details for a species by ID")
-    public SpeciesDetailsDTO getSpeciesDetailsById(@PathVariable String id) {
+    @Operation(summary = "Get cached species details by ID", description = "Returns previously generated species details")
+    public ResponseEntity<SpeciesDetailsDTO> getSpeciesDetailsById(@PathVariable String id) {
+        return speciesDetailsAIService.getCachedDetailsBySpeciesId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/generate")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Generate species details by ID", description = "Generates and stores species details when authenticated")
+    public SpeciesDetailsDTO generateDetailsById(@PathVariable String id) {
         return speciesDetailsAIService.getOrGenerateDetailsBySpeciesId(id);
     }
 
-    @GetMapping("/generate-details")
+    @PostMapping("/generate-details")
     @Operation(summary = "Generate species details by name", description = "Returns species ID and generates details if species name is known")
     public ResponseEntity<SpeciesDetailsDTO> generateDetails(@RequestBody Map<String, String> body) {
         String name = body.get("name");
