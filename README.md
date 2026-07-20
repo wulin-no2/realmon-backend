@@ -119,6 +119,8 @@ GENERATION_REQUESTS_PER_MINUTE=3
 
 Outbound REST calls use a 5-second connection timeout and a 15-second read timeout. Rate-limit counters are stored in memory; use a shared Redis-backed limiter before running multiple backend instances.
 
+Anonymous scan limits currently use the direct client address reported by the servlet container. Before deploying behind a reverse proxy or load balancer, configure and verify trusted forwarded-header handling; otherwise multiple clients may share the proxy address and one rate-limit bucket.
+
 ---
 
 ## 📄 License
