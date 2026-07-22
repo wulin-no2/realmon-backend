@@ -68,11 +68,21 @@ class AuthenticationIntegrationTests {
     }
 
     @Test
-    void registrationRejectsInvalidCredentials() throws Exception {
+    void registrationRejectsUsernameThatIsTooShort() throws Exception {
         mockMvc.perform(post("/api/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"ab","password":"short"}
+                                {"username":"ab","password":"secure-password"}
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registrationRejectsPasswordThatIsTooShort() throws Exception {
+        mockMvc.perform(post("/api/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"short-password-user","password":"short"}
                                 """))
                 .andExpect(status().isBadRequest());
     }
